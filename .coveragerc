@@ -1,0 +1,12 @@
+[run]
+source = spx_sdk
+
+omit =
+    tests/*
+    .venv/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__:
