@@ -285,7 +285,6 @@ def get_all_instances():
     Get all instances in the instance registry.
     :return: A dictionary of instance names and their corresponding instances.
     """
-    global instance_registry
     if instance_registry is None:
         raise ValueError("Instance registry is empty.")
     return instance_registry
@@ -296,7 +295,6 @@ def get_all_classes():
     Get all classes in the class registry.
     :return: A dictionary of class names and their corresponding classes.
     """
-    global class_registry
     if class_registry is None:
         raise ValueError("Class registry is empty.")
     return class_registry
@@ -308,7 +306,6 @@ def clear_registry():
     This function resets the class_registry and instance_registry to empty dictionaries.
     :return: None
     """
-    global class_registry, instance_registry
     class_registry.clear()
     instance_registry.clear()
     logging.debug("Cleared class and instance registries.")
@@ -358,7 +355,6 @@ def load_instances_from_yaml_data(yaml_data: str):
     The class must be registered in the class_registry.
     :param yaml_data: YAML string containing instance definitions.
     """
-    global instance_registry
     data = yaml.safe_load(yaml_data)
 
     for instance_name, instance_info in data.items():

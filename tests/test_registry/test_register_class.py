@@ -19,7 +19,6 @@ class BaseDummy:
 class TestRegisterClass(unittest.TestCase):
     def setUp(self):
         # Clear the global registry before each test.
-        global class_registry
         class_registry.clear()
 
     def test_register_class_default_name(self):
