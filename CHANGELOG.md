@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.1.0-rc.2 (2025-06-13)
+
+### Bug Fixes
+
+* fix: add initial README with project description, features, installation, and usage examples ([`4298d1f`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/4298d1fb3dea1b1fb82b4bc54f7961c56dbf0ae3))
+
+
 ## v0.1.0-rc.1 (2025-06-13)
 
 ### Features
