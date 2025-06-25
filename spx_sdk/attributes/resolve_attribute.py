@@ -6,7 +6,7 @@ import re
 from typing import Tuple, Any, Optional, Union
 from spx_sdk.components import SpxComponent
 from spx_sdk.attributes import SpxAttribute
-from spx_sdk.attributes.attribute import InternalAttributeWrapper, ExternalAttributeWrapper
+from spx_sdk.attributes.attribute import InternalAttributeWrapper, ExternalAttributeWrapper, StaticAttributeWrapper
 
 
 # Define a regex pattern to match attribute references
@@ -245,3 +245,96 @@ def substitute_attribute_references_hierarchical(
         return repr(value)
 
     return ATTRIBUTE_REFERENCE_PATTERN.sub(_repl, text)
+
+
+def extract_attribute_wrappers_hierarchical(
+    instance: SpxComponent,
+    text: str
+) -> list[tuple[str, Optional[Union[InternalAttributeWrapper, ExternalAttributeWrapper, StaticAttributeWrapper]]]]:
+    """
+    For each attribute reference or nested chain in `text`, resolve its wrapper hierarchically.
+    Returns a list of (ref, wrapper) tuples, in order of appearance.
+    """
+    results = []
+    # Patterns to match simple attrs and nested chains
+    nested_pattern = re.compile(r'\$\(\.[^)]+\)')
+    simple_pattern = ATTRIBUTE_REFERENCE_PATTERN
+
+    # Gather all matches with their positions and type
+    matches = []
+    for m in simple_pattern.finditer(text):
+        matches.append((m.start(), m.group(0), 'simple'))
+    for m in nested_pattern.finditer(text):
+        matches.append((m.start(), m.group(0), 'nested'))
+
+    # Sort by appearance in text
+    matches.sort(key=lambda x: x[0])
+
+    for _, ref, kind in matches:
+        if kind == 'nested':
+            try:
+                wrapper = resolve_nested_chain_reference(instance, ref)
+            except Exception:
+                wrapper = None
+        else:
+            try:
+                wrapper = resolve_attribute_reference_hierarchical(instance, ref)
+            except Exception:
+                wrapper = None
+        results.append((ref, wrapper))
+    return results
+
+
+def substitute_with_wrappers(
+    text: str,
+    wrappers: list[tuple[str, Optional[Union[InternalAttributeWrapper, ExternalAttributeWrapper]]]]
+) -> str:
+    """
+    Replace all occurrences of each reference in `text` with repr(wrapper.get()) if possible.
+    Leaves refs unchanged if wrapper is None or .get() raises.
+    """
+    result = text
+    for ref, wrapper in wrappers:
+        if wrapper is not None:
+            try:
+                value = wrapper.get()
+            except Exception:
+                continue
+            # Replace all exact occurrences of ref with repr(value)
+            result = result.replace(ref, repr(value))
+    return result
+
+
+# --- Nested chain reference resolver ---
+def resolve_nested_chain_reference(
+    instance: SpxComponent,
+    reference: str
+) -> Any:
+    """
+    Resolve a nested chain reference of the form '$(.comp1.comp2.attr)'.
+    Starts from the root component and follows each dot-separated segment.
+    Returns a StaticAttributeWrapper for the final attribute/property.
+    """
+    # Check pattern: must start with '$(' and end with ')'
+    if not (isinstance(reference, str) and reference.startswith('$(') and reference.endswith(')')):
+        raise ValueError(f"Invalid nested reference syntax: {reference!r}")
+    # Extract inner path and ensure it begins with '.'
+    path = reference[2:-1]
+    if not path.startswith('.'):
+        raise ValueError(f"Nested reference must start with '.': {path!r}")
+    segments = path.lstrip('.').split('.')
+    # Traverse all but the last segment to reach the target container
+    current: Any = instance.get_root()
+    for seg in segments[:-1]:
+        if hasattr(current, 'children') and seg in current.children:
+            current = current.children[seg]
+        elif hasattr(current, seg):
+            current = getattr(current, seg)
+        else:
+            raise ValueError(f"Cannot resolve segment '{seg}' in nested reference '{reference}'")
+    # The last segment refers to an attribute or property on 'current'
+    last_seg = segments[-1]
+    if not hasattr(current, last_seg):
+        raise ValueError(f"Cannot resolve final segment '{last_seg}' in nested reference '{reference}'")
+    # Return a StaticAttributeWrapper for this attribute/property
+    return StaticAttributeWrapper(current, last_seg)

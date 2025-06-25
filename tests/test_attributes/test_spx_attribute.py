@@ -10,6 +10,7 @@ from spx_sdk.attributes import (
     set_attribute_value,
     SpxAttribute,
 )
+from spx_sdk.attributes.attribute import StaticAttributeWrapper
 from spx_sdk.components.component import SpxComponent
 
 
@@ -190,6 +191,35 @@ class TestSpxAttribute(unittest.TestCase):
         self.attr._external_value = 88
         self.attr.run()
         self.assertIsNone(self.attr._external_value)
+
+    def test_internal_wrapper(self):
+        """InternalAttributeWrapper should get and set internal_value."""
+        # initialize internal to a known value
+        self.attr.internal_value = 5
+        wrapper = self.attr.internal
+        self.assertEqual(wrapper.get(), 5)
+        wrapper.set(8)
+        self.assertEqual(self.attr.internal_value, 8)
+        self.assertEqual(repr(wrapper), f"<Internal {self.attr.name}=8>")
+
+    def test_external_wrapper(self):
+        """ExternalAttributeWrapper should get and set external_value."""
+        wrapper = self.attr.external
+        wrapper.set(15)
+        self.assertEqual(self.attr.external_value, 15)
+        self.assertEqual(repr(wrapper), f"<External {self.attr.name}=15>")
+
+    def test_static_wrapper(self):
+        """StaticAttributeWrapper should wrap plain object attributes."""
+        class Dummy:
+            pass
+        d = Dummy()
+        d.value = 1
+        sw = StaticAttributeWrapper(d, "value")
+        self.assertEqual(sw.get(), 1)
+        sw.set(2)
+        self.assertEqual(d.value, 2)
+        self.assertEqual(repr(sw), "<Static value=2>")
 
 
 if __name__ == "__main__":
