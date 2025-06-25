@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.1.0-rc.3 (2025-06-25)
+
+### Chores
+
+* chore: add SPDX license and copyright information to example and model files ([`fd029fd`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/fd029fd17a7652c19319cfb56ab442802f4a0ac6))
+
+### Features
+
+* feat: implement model framework with timer and polling components, add static attribute wrapper, and enhance action handling ([`9af478e`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/9af478e0283f8dc9656f012571e355c5e07f0913))
+
+### Unknown
+
+* Merge pull request #1 from HammerHeads-Engineers/docs/examples-spx-sdk
+
+Docs/examples spx sdk ([`57f8307`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/57f8307ce0a2f35054ea1087430d0fe0612af65b))
+
+
 ## v0.1.0-rc.2 (2025-06-13)
 
 ### Bug Fixes
