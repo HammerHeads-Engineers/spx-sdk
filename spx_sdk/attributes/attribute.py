@@ -282,3 +282,25 @@ class ExternalAttributeWrapper:
 
     def __repr__(self):
         return f"<External {self._attribute.name}={self.get()!r}>"
+
+
+# New wrapper for plain Python attributes
+class StaticAttributeWrapper:
+    """
+    Wrapper for accessing and setting a plain Python attribute on any object.
+    """
+    def __init__(self, instance, attr_name):
+        self._instance = instance
+        self.name = attr_name
+
+    def get(self):
+        """Return the attribute's current value."""
+        return getattr(self._instance, self.name)
+
+    def set(self, value):
+        """Set the attribute's value."""
+        setattr(self._instance, self.name, value)
+
+    def __repr__(self):
+        val = self.get()
+        return f"<Static {self.name}={val!r}>"

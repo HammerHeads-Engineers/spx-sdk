@@ -4,10 +4,6 @@
 
 import unittest
 
-from spx_sdk.attributes.resolve_attribute import resolve_attribute_reference_hierarchical
-
-from spx_sdk.registry import register_class
-from spx_sdk.components import SpxComponent
 from spx_sdk.attributes.resolve_attribute import (
     is_attribute_reference,
     find_attribute,
@@ -15,10 +11,17 @@ from spx_sdk.attributes.resolve_attribute import (
     get_attribute_value,
     set_attribute_value,
     resolve_reference,
+    resolve_attribute_reference_hierarchical,
     substitute_attribute_references_hierarchical,
+    extract_attribute_wrappers_hierarchical,
+    substitute_with_wrappers,
+    resolve_nested_chain_reference,
 )
+
+from spx_sdk.registry import register_class
+from spx_sdk.components import SpxComponent
 from spx_sdk.attributes import SpxAttributes
-from spx_sdk.attributes.attribute import InternalAttributeWrapper, ExternalAttributeWrapper
+from spx_sdk.attributes.attribute import InternalAttributeWrapper, ExternalAttributeWrapper, StaticAttributeWrapper
 
 
 class DummyAttributeNode(dict):
@@ -177,6 +180,107 @@ class TestResolveAttributeFunctions(unittest.TestCase):
         self.assertIn("2", result)
         # Unknown remains as literal token
         self.assertIn("$attr(z)", result)
+
+    def test_extract_and_substitute_simple(self):
+        # prepare values
+        set_attribute_value(self.attr_a, "internal", 1.5)
+        set_attribute_value(self.attr_b, "external", 8)
+        # text with two refs
+        text = "X=$attr(a); Y=$external(b)"
+        # extract wrappers
+        wrappers = extract_attribute_wrappers_hierarchical(self.parent, text)
+        # expect two entries, one for each ref
+        self.assertEqual(len(wrappers), 2)
+        # substitute values
+        result = substitute_with_wrappers(text, wrappers)
+        self.assertIn("1.5", result)
+        self.assertIn("8", result)
+        self.assertNotIn("$attr(a)", result)
+        self.assertNotIn("$external(b)", result)
+
+    def test_extract_wrappers_with_unknown(self):
+        set_attribute_value(self.attr_a, "internal", 2.0)
+        text = "Known=$attr(a); Unknown=$attr(c)"
+        wrappers = extract_attribute_wrappers_hierarchical(self.parent, text)
+        # one known, one unknown
+        self.assertEqual(wrappers[0][0], "$attr(a)")
+        self.assertIsNotNone(wrappers[0][1])
+        self.assertEqual(wrappers[1][0], "$attr(c)")
+        self.assertIsNone(wrappers[1][1])
+        # substitution only replaces known
+        result = substitute_with_wrappers(text, wrappers)
+        self.assertIn("2.0", result)
+        self.assertIn("$attr(c)", result)
+
+    def test_substitute_multiple_occurrences(self):
+        set_attribute_value(self.attr_a, "internal", 3.0)
+        text = "$attr(a) + $attr(a) = sum"
+        wrappers = extract_attribute_wrappers_hierarchical(self.parent, text)
+        result = substitute_with_wrappers(text, wrappers)
+        # both occurrences replaced
+        self.assertEqual(result.count("3.0"), 2)
+        self.assertIn("sum", result)
+
+    def test_substitute_no_wrappers_changes(self):
+        text = "Nothing to replace here"
+        wrappers = extract_attribute_wrappers_hierarchical(self.parent, text)
+        # no wrappers found
+        self.assertEqual(wrappers, [])
+        # substitution returns original
+        result = substitute_with_wrappers(text, wrappers)
+        self.assertEqual(result, text)
+
+    def test_wrapper_types_internal_external(self):
+        """Verify that extract returns correct wrapper types for internal vs external refs."""
+        # prepare values
+        set_attribute_value(self.attr_a, "internal", 4.2)
+        set_attribute_value(self.attr_b, "external", 9)
+        # text containing both types of references
+        text = "I_val=$attr(a); O_val=$external(b)"
+        wrappers = extract_attribute_wrappers_hierarchical(self.parent, text)
+        # Expect two wrappers in order
+        self.assertEqual(wrappers[0][0], "$attr(a)")
+        self.assertIsInstance(wrappers[0][1], InternalAttributeWrapper)
+        self.assertEqual(wrappers[1][0], "$external(b)")
+        self.assertIsInstance(wrappers[1][1], ExternalAttributeWrapper)
+        # After substitution, types match their get() output
+        result = substitute_with_wrappers(text, wrappers)
+        self.assertIn("4.2", result)
+        self.assertIn("9", result)
+
+    def test_resolve_nested_chain_to_attribute(self):
+        """resolve_nested_chain_reference should traverse children and attributes."""
+        # Prepare an internal value
+        set_attribute_value(self.attr_a, "internal", 2.5)
+        # Reference from parent: .root -> attributes -> a -> internal_value
+        ref = '$(.root.attributes.a.internal_value)'
+        result = resolve_nested_chain_reference(self.parent, ref)
+        self.assertEqual(result.get(), 2.5)
+
+    def test_extract_wrappers_mixed_simple_and_nested(self):
+        """Mixed simple and nested references should both be extracted with correct wrapper types."""
+        # Prepare an internal value for 'a'
+        set_attribute_value(self.attr_a, "internal", 1.0)
+        # Text containing a simple and a nested reference
+        text = "Val1=$attr(a); Val2=$(.root.attributes.a.internal_value)"
+        wrappers = extract_attribute_wrappers_hierarchical(self.parent, text)
+        # Expect two wrappers in order
+        self.assertEqual(len(wrappers), 2)
+        # First is simple internal
+        ref1, w1 = wrappers[0]
+        self.assertEqual(ref1, "$attr(a)")
+        self.assertIsInstance(w1, InternalAttributeWrapper)
+        # Second is nested static wrapper
+        ref2, w2 = wrappers[1]
+        self.assertEqual(ref2, "$(.root.attributes.a.internal_value)")
+        self.assertIsInstance(w2, StaticAttributeWrapper)
+        # Substitute both and confirm values replaced
+        result = substitute_with_wrappers(text, wrappers)
+        # Both references should be gone, replaced with '1.0'
+        self.assertNotIn("$attr(a)", result)
+        self.assertNotIn("$(", result)
+        # There should be two occurrences of '1.0'
+        self.assertEqual(result.count("1.0"), 2)
 
 
 if __name__ == "__main__":

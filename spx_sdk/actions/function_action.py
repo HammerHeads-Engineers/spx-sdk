@@ -19,7 +19,7 @@ class FunctionAction(Action):
         Evaluate the call expression, resolving attribute references,
         and write the result to all output attributes.
         """
-        if not self.call:
+        super().run()
+        if self.call is None:
             return False  # No call defined, nothing to run
-        result = self.call
-        return super().run(result=result)
+        return self.write_outputs(self.call)

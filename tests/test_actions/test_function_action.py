@@ -40,6 +40,7 @@ class TestFunctionAction(unittest.TestCase):
                                 parent=self.root,
                                 definition=definition)
         action.prepare()
+        action.run()
         self.assertEqual(action.function, 'function')
         self.assertEqual(action.output, '#ext(apparent_power)')
         self.assertEqual(action.call, 6.0)  # 2.0 * 3.0 = 6.0
