@@ -33,7 +33,7 @@ version_toml = [
     "pyproject.toml:tool.poetry.version"
 ]
 
-commit_message = "Release v{version}"
+commit_message = "chore(release): v{version} [skip ci]"
 build_command = "pip install poetry && poetry build"
 
 [tool.semantic_release.branches.main]
