@@ -226,6 +226,47 @@ class TestSpxContainerFiltered(unittest.TestCase):
         self.assertIsInstance(child, SpxComponent)
         self.assertIs(child.parent, cont)
 
+    def test_runtime_add_new_child_via_dict(self):
+        register_class()(SpxComponent)
+        cont = SpxContainer(name="ct", definition={}, parent=self.parent, type=SpxComponent)
+        cont["new_child"] = {}
+        self.assertIn("new_child", cont)
+        child = cont["new_child"]
+        self.assertIsInstance(child, SpxComponent)
+        self.assertEqual(child.definition, {})
+        self.assertIs(child.parent, cont)
+
+    def test_runtime_override_existing_child_definition(self):
+        register_class()(SpxComponent)
+        cont = SpxContainer(name="ct", definition={"A": {"x": 1}}, parent=self.parent, type=SpxComponent)
+        cont["A"] = {"x": 5}
+        self.assertEqual(cont["A"].definition, {"x": 5})
+
+    def test_runtime_replace_child_with_component(self):
+        register_class()(SpxComponent)
+        cont = SpxContainer(name="ct", definition={"A": {"x": 1}}, parent=self.parent, type=SpxComponent)
+        new_a = A(name="A")
+        cont["A"] = new_a
+        self.assertIs(cont["A"], new_a)
+        self.assertIs(new_a.parent, cont)
+
+    def test_runtime_remove_and_delete(self):
+        register_class()(SpxComponent)
+        cont = SpxContainer(name="ct", definition={"A": {"x": 1}}, parent=self.parent, type=SpxComponent)
+        cont.remove("A")
+        self.assertNotIn("A", cont)
+        new_c = CItem(name="C")
+        cont["C"] = new_c
+        self.assertIn("C", cont)
+        del cont["C"]
+        self.assertNotIn("C", cont)
+
+    def test_runtime_setitem_invalid_type_raises(self):
+        register_class()(SpxComponent)
+        cont = SpxContainer(name="ct", definition={}, parent=self.parent, type=SpxComponent)
+        with self.assertRaises(ValueError):
+            cont["invalid"] = object()
+
 
 class TestSpxContainerComplex(unittest.TestCase):
     def setUp(self):
