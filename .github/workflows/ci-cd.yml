@@ -139,7 +139,7 @@ jobs:
           github_token: ${{ secrets.PAT_TOKEN }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          root_options: "--force"
+          force: patch
           push: true          
 
       - name: Publish | Upload package to PyPI
