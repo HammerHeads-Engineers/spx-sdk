@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.0-alpha.1 (2025-07-11)
+
+### Features
+
+* feat: enable force push for GitHub Actions during release process ([`1e7c335`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/1e7c335041dd96adae15479d938bf061d1269e8e))
+
+
 ## v0.1.0 (2025-07-11)
 
 ### Unknown
