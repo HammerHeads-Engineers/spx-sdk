@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spx-sdk"
-version = "0.2.1"
+version = "0.2.2"
 description = "A Python library for managing and loading class instances from modules and YAML configurations."
 authors = ["Aleksander Stanik <aleksander.stanik@hammerheadesengineers.com>"]
 license = "MIT"
