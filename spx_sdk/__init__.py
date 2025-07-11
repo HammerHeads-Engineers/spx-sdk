@@ -2,7 +2,7 @@
 # Copyright (c) 2025 Hammerheads Engineers Sp. z o.o.
 # See the accompanying LICENSE file for terms.
 
-__version__ = "0.2.3"
+__version__ = "0.2.4-alpha.1"
 
 import pkgutil
 import importlib

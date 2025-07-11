@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.4-alpha.1 (2025-07-11)
+
+### Bug Fixes
+
+* fix: remove unnecessary force push options in release step ([`d2c874f`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/d2c874fa5b726d4d09d4a86d77370f257d5a4f60))
+
+
 ## v0.2.3 (2025-07-11)
 
 
