@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.2.4 (2025-07-11)
+
+### Unknown
+
+* Merge pull request #4 from HammerHeads-Engineers/feat/pypi-force-push
+
+Feat/pypi force push ([`560a076`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/560a07686525048f3cbd32de792390c42acf4d86))
+
+
 ## v0.2.4-alpha.1 (2025-07-11)
 
 ### Bug Fixes
@@ -8,6 +17,10 @@
 * fix: update commit message format for semantic release ([`8b15ad6`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/8b15ad62b1b029daf1785161400a4d73876385e6))
 
 * fix: remove unnecessary force push options in release step ([`d2c874f`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/d2c874fa5b726d4d09d4a86d77370f257d5a4f60))
+
+### Chores
+
+* chore(release): v0.2.4-alpha.1 [skip ci] ([`f1b6068`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/f1b60689dbbee0ff6b3f3010dcdd14bc0a2d185c))
 
 ### Unknown
 
