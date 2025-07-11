@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.1.0 (2025-07-11)
+
+### Unknown
+
+* Merge pull request #3 from HammerHeads-Engineers/develop
+
+Develop ([`4c5c849`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/4c5c849426879c75f2bd641f24d2b0ad5d40e6d5))
+
+* Merge pull request #2 from HammerHeads-Engineers/feat/component-runtime-interface
+
+Feat/component runtime interface ([`2d05478`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/2d0547899f198b30802dff793a27f2845c3d59de))
+
+
 ## v0.1.0-alpha.1 (2025-07-11)
 
 ### Features
