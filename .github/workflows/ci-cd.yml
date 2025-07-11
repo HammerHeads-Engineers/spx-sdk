@@ -1,0 +1,154 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feat/**
+      - feature/**
+      - fix/**
+      - perf/**
+      - performance/**
+      - develop
+      - ci/**
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: write
+  id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9.19, 3.10.14, 3.11.9, 3.12.4]  # Test against multiple Python versions
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry
+        shell: bash
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          # cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --with=dev
+
+      - name: Lint with flake8
+        run: |
+          poetry run flake8 .
+
+      - name: Run tests with coverage
+        run: |
+          poetry run coverage run -m unittest discover -s tests
+          poetry run coverage report
+
+  build:
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Install poetry
+        shell: bash
+        run: pipx install poetry
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          # cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Build the package
+        run: poetry build
+
+      - name: List dist directory
+        run: ls -la dist/
+        
+      - name: Test installation of spx_sdk
+        run: |
+          poetry run python -m pip install dist/*.whl
+          poetry run python -c "import spx_sdk; print('spx_sdk installed successfully')"
+          poetry run python -c "from spx_sdk.registry import register_class; print('spx_sdk installation and import successful')"
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/*
+
+  release:
+    runs-on: ubuntu-latest
+    concurrency: release
+    needs: build
+
+    steps:
+      - name: Setup | Checkout Repository at workflow sha
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Setup | Force correct release branch on workflow sha
+        run: |
+          git checkout -B ${{ github.ref_name }} ${{ github.sha }}
+
+      - name: Install poetry
+        shell: bash
+        run: pipx install poetry
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          # cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --with=dev
+
+      - name: Action | Semantic Version Release
+        id: release
+        # Adjust tag with desired version if applicable.
+        uses: python-semantic-release/python-semantic-release@v9.12.0
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+
+      - name: Publish | Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: steps.release.outputs.released == 'true'
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}   
+
+      - name: Publish | Upload to GitHub Release Assets
+        uses: python-semantic-release/publish-action@v9.8.9
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}

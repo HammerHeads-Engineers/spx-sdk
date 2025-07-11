@@ -1,0 +1,59 @@
+[tool.poetry]
+name = "spx-sdk"
+version = "0.1.0-alpha.1"
+description = "A Python library for managing and loading class instances from modules and YAML configurations."
+authors = ["Aleksander Stanik <aleksander.stanik@hammerheadesengineers.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+PyYAML = "*"
+fastapi = "*"
+uvicorn = "*"
+httpx = "*"
+
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.3.1"
+python-semantic-release = "*"
+black = "*"
+isort = "*"
+commitizen = "*"
+flake8 = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_variables = [
+    "spx_sdk/__init__.py:__version__"
+]
+version_toml = [
+    "pyproject.toml:tool.poetry.version"
+]
+
+commit_message = "Release v{version}"
+build_command = "pip install poetry && poetry build"
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+prerelease_token = "rc"
+
+[tool.semantic_release.branches.alpha]
+match = "^(feat|fix|perf)/.+"
+prerelease = true
+prerelease_token = "alpha"
+
+[tool.semantic_release.branches.develop]
+match = "develop"
+prerelease = true
+prerelease_token = "rc"
+
+[tool.semantic_release.remote]
+type = "github"
+token = { env = "GH_TOKEN" }
+
+[tool.semantic_release.publish]
+upload_to_vcs_release = true
