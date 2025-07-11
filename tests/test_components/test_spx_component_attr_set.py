@@ -14,6 +14,7 @@ class CustomLeaf(SpxComponent):
         super().__init__(name=name, parent=parent, definition=definition)
         # Set a default attribute
         self.some_attr = 123
+        self.extra = None  # Another attribute to test setting/getting
 
 
 class CustomParent(SpxComponent):
@@ -50,11 +51,6 @@ class TestSpxComponentDictAccess(unittest.TestCase):
         # Leaf has no children, so __getitem__ should treat key as attribute
         # Retrieving existing attribute 'some_attr'
         self.assertEqual(leaf["some_attr"], 123)
-
-        # Setting a new attribute on leaf
-        leaf["new_attr"] = "hello"
-        self.assertEqual(leaf.new_attr, "hello")
-        self.assertEqual(leaf["new_attr"], "hello")
 
         # Overwriting existing attribute
         leaf["some_attr"] = 999

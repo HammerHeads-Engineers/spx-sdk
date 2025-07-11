@@ -264,33 +264,59 @@ class SpxComponent:
                 return getattr(self, key)
             raise KeyError(f"Component '{self.name}' has no child or attribute named '{key}'.")
 
-    def __setitem__(self, key: str, value) -> None:
+    def add(self, inst_name: str, cfg: Any) -> "SpxComponent":
         """
-        If this component has children, set or replace a child by name.
-        If no children exist, set an attribute on this instance.
-        Raises ValueError if assigning a child when the value is not an SpxComponent.
+        Dynamically add a new instance at runtime, mirroring _populate logic for a single entry.
+        Returns the newly created component (or existing if already present).
         """
-        if len(self.children) > 0:
-            # Expect value to be a child component
-            if not isinstance(value, SpxComponent):
-                raise ValueError("Only SpxComponent instances can be assigned as children.")
-            old_child = self.children.get(key)
-            if old_child is not None:
-                old_child.parent = None
+        # If already present, remove existing instance first
+        self.remove(inst_name)
+        # Reuse _populate logic by feeding a single-entry list
+        self._populate([{inst_name: cfg}])
+        # Return the newly added instance
+        return self.children.get(inst_name)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if isinstance(value, SpxComponent):
+            # Assign a child component
+            old = self.children.get(key)
+            if old is not None:
+                old.parent = None
             self.children[key] = value
             value.parent = self
-        else:
-            # Leaf: attempt to set property or attribute
+            return
+        # Override existing attribute if present
+        if hasattr(self, key):
             cls_attr = getattr(self.__class__, key, None)
-            # If it's a property on the class
             if isinstance(cls_attr, property):
+                # Property: ensure it has a setter
                 if cls_attr.fset is None:
                     raise AttributeError(f"Property '{key}' on component '{self.name}' is read-only")
-                # Use setattr to invoke the property's setter
                 setattr(self, key, value)
             else:
-                # Not a property: set or create a normal attribute
                 setattr(self, key, value)
+            return
+        # For dict or string values, delegate to add()
+        if isinstance(value, (dict, str)):
+            self.add(key, value)
+            return
+        # Otherwise, cannot handle this type
+        raise ValueError(f"Cannot set item {key!r} with value of type {type(value).__name__}")
+
+    def remove(self, inst_name: str) -> None:
+        """
+        Remove the instance with the given name, if present.
+        """
+        child = self.children.pop(inst_name, None)
+        if child is not None:
+            # detach parent
+            child.parent = None
+
+    def __delitem__(self, key: str) -> None:
+        """
+        Allow dict-style deletion of instances.
+        """
+        self.remove(key)
 
     def get(self, key: str, default=None) -> Optional["SpxComponent"]:
         """
