@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.1.0-alpha.1 (2025-07-11)
+
+### Features
+
+* feat: enhance SpxComponent with dynamic add/remove functionality and improve dict-like behavior ([`c17dc87`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/c17dc878648134350570c7c95de0cd04ba991b1c))
+
+
 ## v0.1.0-rc.3 (2025-06-25)
 
 ### Chores
