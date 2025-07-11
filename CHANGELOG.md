@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.2.1 (2025-07-11)
+
+### Bug Fixes
+
+* fix: update release step to use 'force: patch' instead of 'root_options: "--force"' ([`a63ba77`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/a63ba777dc7c7e71de115e1323ae9332d755d394))
+
+* fix: update release step to use root_options for force push ([`4c7afb0`](https://github.com/HammerHeads-Engineers/spx-sdk/commit/4c7afb00bc657843ffc2d7cc4f73000ca28b3498))
+
+
 ## v0.2.0-alpha.1 (2025-07-11)
 
 ### Features
